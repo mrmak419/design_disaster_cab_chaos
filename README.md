@@ -40,16 +40,59 @@ Based on our current setup, the project utilizes a modern frontend stack:
 The codebase is organized for scalability and clean architecture:
 
 ```text
-src/
- ├── assets/      # Static assets like images and icons
- ├── components/  # Reusable UI components (buttons, cards, inputs)
- ├── hooks/       # Custom React hooks for shared logic
- ├── store/       # Global state management
- ├── views/       # Page-level components (screens)
- ├── App.jsx      # Root component
- └── main.jsx     # Application entry point
-
+design impetus
+├── impetus
+│   ├── .gitignore
+│   ├── index.html
+│   ├── package-lock.json
+│   ├── package.json
+│   ├── public
+│   │   └── vite.svg
+│   └── src
+│       ├── counter.js
+│       ├── javascript.svg
+│       ├── main.js
+│       └── style.css
+├── localhost
+│   ├── .gitignore
+│   ├── eslint.config.js
+│   ├── index.html
+│   ├── package-lock.json
+│   ├── package.json
+│   ├── postcss.config.js
+│   ├── public
+│   │   └── vite.svg
+│   ├── README.md
+│   ├── src
+│   │   ├── App.css
+│   │   ├── App.jsx
+│   │   ├── assets
+│   │   │   └── react.svg
+│   │   ├── components
+│   │   │   ├── chaos
+│   │   │   │   ├── ConfusingCheckout.jsx
+│   │   │   │   ├── DriftingMapPin.jsx
+│   │   │   │   └── SurgePricingDisplay.jsx
+│   │   │   └── clarity
+│   │   │       ├── AccurateMap.jsx
+│   │   │       ├── CleanCheckout.jsx
+│   │   │       └── TransparentPricing.jsx
+│   │   ├── hooks
+│   │   │   ├── useDriftingLocation.js
+│   │   │   └── useFakeLag.js
+│   │   ├── index.css
+│   │   ├── main.jsx
+│   │   ├── store
+│   │   │   └── appStore.js
+│   │   └── views
+│   │       └── Dashboard.jsx
+│   ├── tailwind.config.js
+│   └── vite.config.js
+├── package-lock.json
+└── print-tree.js
 ```
+
+
 
 ##  Current Status: Work in Progress
 
