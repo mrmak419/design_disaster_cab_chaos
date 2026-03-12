@@ -21,7 +21,6 @@ Cab Chaos is a unique dual-mode React application built using Vite and Tailwind 
 
 ## Prerequisites
 
-- Node.js installed on your machine.
 - NPM or another package manager.
 
 ## Installation
