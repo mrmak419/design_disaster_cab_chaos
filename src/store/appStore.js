@@ -4,7 +4,11 @@ export const useAppStore = create((set) => ({
   isChaosMode: true,
   toggleChaosMode: () => set((state) => ({ isChaosMode: !state.isChaosMode })),
 
-  pickupLocation: null, // { address: string, coords: [lat, lng] }
+  // --- ROUTING STATE ---
+  activeView: 'login', // Starts at the login wall
+  setView: (view) => set({ activeView: view }),
+
+  pickupLocation: null,
   dropoffLocation: null,
   baseFare: 150,
   selectedRideType: null,
