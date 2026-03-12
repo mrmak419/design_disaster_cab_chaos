@@ -1,35 +1,29 @@
-import { useState } from 'react'
-import reactLogo from './assets/react.svg'
-import viteLogo from '/vite.svg'
-import './App.css'
+import { useEffect } from 'react';
+import { useAppStore } from './store/appStore';
 
-function App() {
-  const [count, setCount] = useState(0)
+export default function App() {
+  const { isChaosMode, toggleChaosMode } = useAppStore();
+
+  // Hidden keystroke listener: Ctrl + Shift + K toggles modes
+  useEffect(() => {
+    const handleKeyDown = (e) => {
+      if (e.ctrlKey && e.shiftKey && e.key === 'K') {
+        e.preventDefault();
+        toggleChaosMode();
+      }
+    };
+
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, [toggleChaosMode]);
 
   return (
-    <>
-      <div>
-        <a href="https://vite.dev" target="_blank">
-          <img src={viteLogo} className="logo" alt="Vite logo" />
-        </a>
-        <a href="https://react.dev" target="_blank">
-          <img src={reactLogo} className="logo react" alt="React logo" />
-        </a>
+    <div className={`min-h-screen transition-colors duration-300 ${isChaosMode ? 'bg-gray-900' : 'bg-gray-50'}`}>
+      <div className="absolute top-4 left-4 p-2 text-xs font-mono text-gray-500 opacity-50 pointer-events-none">
+        Debug: {isChaosMode ? 'CHAOS_ACTIVE' : 'CLARITY_ACTIVE'}
       </div>
-      <h1>Vite + React</h1>
-      <div className="card">
-        <button onClick={() => setCount((count) => count + 1)}>
-          count is {count}
-        </button>
-        <p>
-          Edit <code>src/App.jsx</code> and save to test HMR
-        </p>
-      </div>
-      <p className="read-the-docs">
-        Click on the Vite and React logos to learn more
-      </p>
-    </>
-  )
+      
+      {/* We will route your components here next */}
+    </div>
+  );
 }
-
-export default App
