@@ -1,33 +1,39 @@
 import { create } from 'zustand';
 
 export const useAppStore = create((set) => ({
-  isChaosMode: true,
+  // --- SYSTEM STATE ---
+  isChaosMode: false, // DEFAULT IS NOW FALSE (PRODUCTION MODE)
   toggleChaosMode: () => set((state) => ({ isChaosMode: !state.isChaosMode })),
+  isDarkMode: false,
+  toggleDarkMode: () => set((state) => ({ isDarkMode: !state.isDarkMode })),
+  
+  // --- PWA STATE ---
+  deferredPrompt: null,
+  setDeferredPrompt: (prompt) => set({ deferredPrompt: prompt }),
 
-  // --- ROUTING STATE ---
-  activeView: 'login', // Starts at the login wall
-  setView: (view) => set({ activeView: view }),
-
-  pickupLocation: null,
-  dropoffLocation: null,
-  baseFare: 150,
-  selectedRideType: null,
+  // --- THE DATA CONTRACT (Between You and Teammate) ---
+  pickupLocation: null, // You write this
+  dropoffLocation: null, // You write this
+  distance: 0,          // TEAMMATE WRITES THIS from the Map
+  baseFare: 0,          // You calculate this based on distance
+  
+  selectedRideType: 'mini', // Default to normal
   rideStatus: 'idle',
-  // Add these two lines to your useAppStore implementation:
-globalSurge: 0,
-increaseGlobalSurge: (amount) => set((state) => ({ globalSurge: state.globalSurge + amount })),
 
+  // Actions
   setPickup: (location) => set({ pickupLocation: location }),
   setDropoff: (location) => set({ dropoffLocation: location }),
+  setDistance: (dist) => set({ distance: dist }), // Teammate calls this
+  setBaseFare: (fare) => set({ baseFare: fare }),
   setRideType: (type) => set({ selectedRideType: type }),
   setRideStatus: (status) => set({ rideStatus: status }),
-  setBaseFare: (fare) => set({ baseFare: fare }),
   
   resetBooking: () => set({
     pickupLocation: null,
     dropoffLocation: null,
-    selectedRideType: null,
+    distance: 0,
+    baseFare: 0,
+    selectedRideType: 'mini',
     rideStatus: 'idle',
-    baseFare: 150
   })
 }));
