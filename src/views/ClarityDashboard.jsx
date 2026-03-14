@@ -8,101 +8,205 @@ import CleanCheckout from '../components/clarity/CleanCheckout';
 
 export default function ClarityDashboard() {
   const { isDarkMode, toggleDarkMode, pickupLocation, dropoffLocation } = useAppStore();
-  const [activeTab, setActiveTab] = useState('book');
-  const [showMap, setShowMap] = useState(false);
+  
+  const [activeTab, setActiveTab] = useState('book'); 
+  const [isSheetExpanded, setIsSheetExpanded] = useState(true);
+  const [touchStartY, setTouchStartY] = useState(0);
+  
+  // NEW: Sidebar State
+  const [isMenuOpen, setIsMenuOpen] = useState(false);
 
-  // Show map if locations exist, or if the "show-map" event is fired from ClarityLocation
   useEffect(() => {
-    if (pickupLocation || dropoffLocation) setShowMap(true);
+    if (pickupLocation && dropoffLocation) setIsSheetExpanded(true);
   }, [pickupLocation, dropoffLocation]);
 
-  useEffect(() => {
-    const handleShowMap = () => setShowMap(true);
-    window.addEventListener('show-map', handleShowMap);
-    return () => window.removeEventListener('show-map', handleShowMap);
-  }, []);
+  const handleTouchStart = (e) => setTouchStartY(e.touches[0].clientY);
+  const handleTouchEnd = (e) => {
+    const touchEndY = e.changedTouches[0].clientY;
+    const delta = touchEndY - touchStartY;
+    if (delta > 40) setIsSheetExpanded(false); 
+    else if (delta < -40) setIsSheetExpanded(true); 
+  };
 
   return (
-    <div className="min-h-screen bg-gray-50 dark:bg-gray-950 text-gray-900 dark:text-gray-100 transition-colors duration-300 flex flex-col font-sans">
+    <div className="h-screen w-full relative overflow-hidden bg-black text-gray-900 dark:text-gray-100 font-sans">
       
-      <header className="px-6 py-4 bg-white dark:bg-gray-900 shadow-sm border-b border-gray-100 dark:border-gray-800 flex justify-between items-center z-10 sticky top-0">
-        <h1 className="text-2xl font-black tracking-tighter">
-          Local<span className="text-blue-600 dark:text-blue-400">host</span>
-        </h1>
-        
-        <div className="flex items-center gap-4">
+      {/* LAYER 0: THE MAP */}
+      <div className="absolute inset-0 z-0">
+        <AccurateMap />
+      </div>
+
+      {/* LAYER 1: THE HAMBURGER (Only visible on the Book tab) */}
+      {activeTab === 'book' && (
+        <div className="absolute top-12 left-5 z-40">
           <button 
-            onClick={toggleDarkMode}
-            className="p-2 rounded-full bg-gray-100 dark:bg-gray-800 text-gray-600 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-700 transition-colors"
+            onClick={() => setIsMenuOpen(true)} 
+            className="w-12 h-12 bg-white dark:bg-gray-900 rounded-full shadow-lg flex items-center justify-center active:scale-95 transition-transform border border-gray-100 dark:border-gray-800"
           >
-            {isDarkMode ? (
-              <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 3v1m0 16v1m9-9h-1M4 12H3m15.364 6.364l-.707-.707M6.343 6.343l-.707-.707m12.728 0l-.707.707M6.343 17.657l-.707.707M16 12a4 4 0 11-8 0 4 4 0 018 0z" /></svg>
-            ) : (
-              <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M20.354 15.354A9 9 0 018.646 3.646 9.003 9.003 0 0012 21a9.003 9.003 0 008.354-5.646z" /></svg>
-            )}
-          </button>
-          
-          <button 
-            onClick={() => setActiveTab(activeTab === 'profile' ? 'book' : 'profile')}
-            className="w-9 h-9 rounded-full bg-blue-100 dark:bg-blue-900 border-2 border-white dark:border-gray-800 overflow-hidden shadow-sm"
-          >
-            <svg className="w-full h-full text-blue-600 dark:text-blue-400 p-1.5" fill="currentColor" viewBox="0 0 20 20">
-              <path fillRule="evenodd" d="M10 9a3 3 0 100-6 3 3 0 000 6zm-7 9a7 7 0 1114 0H3z" clipRule="evenodd" />
-            </svg>
+            <svg className="w-6 h-6 text-gray-900 dark:text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth="2"><path strokeLinecap="round" strokeLinejoin="round" d="M4 6h16M4 12h16M4 18h16" /></svg>
           </button>
         </div>
-      </header>
+      )}
 
-      <main className="flex-1 overflow-y-auto pb-20 p-4 max-w-lg mx-auto w-full">
-        {activeTab === 'profile' ? (
-          <div className="animate-fade-in space-y-6 pt-4">
-            <div className="bg-white dark:bg-gray-900 rounded-3xl p-6 shadow-sm border border-gray-100 dark:border-gray-800 flex items-center gap-4">
-              <div className="w-16 h-16 bg-blue-100 dark:bg-blue-900 rounded-full flex items-center justify-center">
-                 <svg className="w-8 h-8 text-blue-600 dark:text-blue-400" fill="currentColor" viewBox="0 0 20 20"><path fillRule="evenodd" d="M10 9a3 3 0 100-6 3 3 0 000 6zm-7 9a7 7 0 1114 0H3z" clipRule="evenodd" /></svg>
-              </div>
-              <div>
-                <h2 className="text-xl font-bold">Mohammad Ayaan</h2>
-                <p className="text-sm text-gray-500 dark:text-gray-400">+91 98765 43210</p>
-                <div className="flex items-center gap-1 mt-1">
-                  <span className="w-2 h-2 rounded-full bg-green-500"></span>
-                  <span className="text-xs font-medium text-green-600 dark:text-green-400">Verified Account</span>
-                </div>
+      {/* --- SIDEBAR DRAWER (z-[100]) --- */}
+      <div className={`fixed inset-0 z-[100] pointer-events-none`}>
+        {/* Dark Backdrop */}
+        <div 
+          className={`absolute inset-0 bg-black/40 backdrop-blur-sm transition-opacity duration-300 pointer-events-auto ${isMenuOpen ? 'opacity-100' : 'opacity-0 hidden'}`}
+          onClick={() => setIsMenuOpen(false)}
+        ></div>
+
+        {/* Sliding Menu Panel */}
+        <div className={`absolute top-0 left-0 w-[80%] max-w-[320px] h-full bg-white dark:bg-gray-900 shadow-2xl transition-transform duration-300 ease-out pointer-events-auto flex flex-col ${isMenuOpen ? 'translate-x-0' : '-translate-x-full'}`}>
+          
+          {/* Menu Header (User Info) */}
+          <div className="p-6 pt-16 bg-gray-50 dark:bg-gray-800/50 border-b border-gray-100 dark:border-gray-800 flex items-center gap-4">
+            <div className="w-14 h-14 bg-black dark:bg-white rounded-full flex items-center justify-center shadow-sm">
+              <span className="text-xl font-black text-white dark:text-black">M</span>
+            </div>
+            <div>
+              <h2 className="text-lg font-black text-gray-900 dark:text-white">Ayaan</h2>
+              <div className="flex items-center gap-1 mt-0.5">
+                 <svg className="w-3 h-3 text-yellow-500" fill="currentColor" viewBox="0 0 20 20"><path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z"/></svg>
+                 <span className="text-xs font-bold text-gray-600 dark:text-gray-400">4.92 Rating</span>
               </div>
             </div>
-            
-            <div className="bg-white dark:bg-gray-900 rounded-3xl p-2 shadow-sm border border-gray-100 dark:border-gray-800">
-              {['Payment Methods', 'Ride History', 'Saved Places', 'Support & Safety'].map((item, i) => (
-                <button key={i} className="w-full flex justify-between items-center p-4 hover:bg-gray-50 dark:hover:bg-gray-800 rounded-2xl transition-colors">
-                  <span className="font-medium text-gray-700 dark:text-gray-200">{item}</span>
-                  <svg className="w-4 h-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 5l7 7-7 7" /></svg>
-                </button>
-              ))}
-            </div>
-            <button className="w-full py-4 text-red-600 dark:text-red-400 font-bold bg-red-50 dark:bg-red-900/20 rounded-2xl">Log Out</button>
           </div>
-        ) : (
-          <div className="animate-fade-in space-y-4 pt-2 relative">
-            <div className="relative z-50">
-              <ClarityLocation />
-            </div>
-            
-            {/* The Map is now hidden until showMap is true */}
-            {showMap && (
-              <div className="w-full rounded-3xl overflow-hidden shadow-sm border border-gray-200 dark:border-gray-800 relative z-0 animate-fade-in">
-                <AccurateMap />
-              </div>
-            )}
 
-            <div className="relative z-40">
+          {/* Menu Links */}
+          <div className="flex-1 overflow-y-auto py-4 px-3 space-y-1">
+            {['Messages', 'Your Trips', 'Wallet', 'Safety', 'Settings'].map((item, i) => (
+              <button key={i} onClick={() => setIsMenuOpen(false)} className="w-full text-left px-4 py-3.5 rounded-xl hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors font-semibold text-[17px] text-gray-700 dark:text-gray-200">
+                {item}
+              </button>
+            ))}
+          </div>
+
+          {/* Footer (Dark Mode iOS Toggle) */}
+          <div className="p-5 border-t border-gray-100 dark:border-gray-800 pb-safe">
+            <button 
+              onClick={toggleDarkMode} 
+              className="w-full flex items-center justify-between px-4 py-3 bg-gray-50 dark:bg-gray-800 rounded-2xl active:scale-95 transition-transform"
+            >
+              <span className="font-bold text-[15px] text-gray-900 dark:text-white">Dark Mode</span>
+              <div className={`w-12 h-6 rounded-full p-1 transition-colors duration-300 ${isDarkMode ? 'bg-black dark:bg-white' : 'bg-gray-300 dark:bg-gray-600'} relative`}>
+                <div className={`w-4 h-4 rounded-full shadow-sm transition-transform duration-300 ${isDarkMode ? 'translate-x-6 bg-gray-900' : 'translate-x-0 bg-white'}`}></div>
+              </div>
+            </button>
+          </div>
+        </div>
+      </div>
+
+      {/* LAYER 2: BOTTOM SHEET */}
+      {activeTab === 'book' && (
+        <div 
+          className={`absolute bottom-20 left-0 w-full z-40 bg-white dark:bg-gray-900 rounded-t-3xl shadow-[0_-15px_40px_rgba(0,0,0,0.15)] pt-3 transition-all duration-300 ease-out flex flex-col ${
+            isSheetExpanded ? 'h-[75vh]' : 'h-auto max-h-[35vh]'
+          }`}
+        >
+          <div 
+            className="w-full pb-3 cursor-grab active:cursor-grabbing shrink-0"
+            onTouchStart={handleTouchStart}
+            onTouchEnd={handleTouchEnd}
+            onClick={() => setIsSheetExpanded(!isSheetExpanded)} 
+          >
+            <div className="w-12 h-1.5 bg-gray-300 dark:bg-gray-700 rounded-full mx-auto"></div>
+          </div>
+          
+          <div className={`w-full max-w-lg mx-auto relative px-5 pb-6 overscroll-contain pb-safe no-scrollbar ${
+            isSheetExpanded ? 'overflow-y-auto' : 'overflow-hidden'
+          }`}>
+            <style>{`.no-scrollbar::-webkit-scrollbar { display: none; } .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }`}</style>
+            
+            <ClarityLocation />
+            
+            <div className={`transition-all duration-300 origin-top ${
+              isSheetExpanded ? 'opacity-100 scale-y-100 mt-2' : 'opacity-0 scale-y-0 h-0 overflow-hidden pointer-events-none mt-0'
+            }`}>
               <TransparentPricing />
             </div>
+          </div>
+        </div>
+      )}
 
-            <div className="relative z-40">
-              <CleanCheckout />
+      {/* --- MOCK ACTIVITY TAB --- */}
+      {activeTab === 'activity' && (
+        <div className="absolute inset-0 z-30 bg-white dark:bg-black overflow-y-auto pb-24 px-5 pt-14 animate-fade-in">
+          <h2 className="text-3xl font-black text-gray-900 dark:text-white mb-6">Activity</h2>
+          <h3 className="text-sm font-bold text-gray-500 uppercase tracking-wider mb-3">Past Rides</h3>
+          <div className="bg-gray-50 dark:bg-gray-900 rounded-3xl p-4 shadow-sm border border-gray-100 dark:border-gray-800">
+            <div className="flex justify-between items-start mb-3">
+              <div className="flex items-center gap-3">
+                <div className="w-10 h-10 bg-white dark:bg-gray-800 rounded-xl flex items-center justify-center shadow-sm">
+                  <svg className="w-6 h-6 text-black dark:text-white" fill="currentColor" viewBox="0 0 24 24"><path d="M18.92 6.01C18.72 5.42 18.16 5 17.5 5h-11c-.66 0-1.21.42-1.42 1.01L3 12v8c0 .55.45 1 1 1h1c.55 0 1-.45 1-1v-1h12v1c0 .55.45 1 1 1h1c.55 0 1-.45 1-1v-8l-2.08-5.99zM6.5 16c-.83 0-1.5-.67-1.5-1.5S5.67 13 6.5 13s1.5.67 1.5 1.5S7.33 16 6.5 16zm11 0c-.83 0-1.5-.67-1.5-1.5s.67-1.5 1.5-1.5 1.5.67 1.5 1.5-.67 1.5-1.5 1.5zM5 11l1.5-4.5h11L19 11H5z"/></svg>
+                </div>
+                <div>
+                  <h4 className="font-bold text-gray-900 dark:text-white text-[15px]">University Visvesvaraya...</h4>
+                  <p className="text-xs text-gray-500 mt-0.5">Mar 12 • 9:41 AM</p>
+                </div>
+              </div>
+              <span className="font-bold text-[15px] text-gray-900 dark:text-white">₹142</span>
+            </div>
+            <div className="h-px w-full bg-gray-200 dark:bg-gray-800 my-3"></div>
+            <p className="text-[13px] font-medium text-gray-500 truncate">From Majestic Bus Stand</p>
+          </div>
+        </div>
+      )}
+
+      {/* --- MOCK ACCOUNT TAB --- */}
+      {activeTab === 'account' && (
+        <div className="absolute inset-0 z-30 bg-white dark:bg-black overflow-y-auto pb-24 px-5 pt-14 animate-fade-in">
+          <div className="flex items-center justify-between mb-8">
+            <div>
+              <h2 className="text-3xl font-black text-gray-900 dark:text-white">Ayaan</h2>
+              <div className="flex items-center gap-1 mt-1 bg-gray-100 dark:bg-gray-900 w-max px-2 py-1 rounded-lg">
+                <svg className="w-3 h-3 text-black dark:text-white" fill="currentColor" viewBox="0 0 20 20"><path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z"/></svg>
+                <span className="text-xs font-bold text-gray-900 dark:text-white">4.92</span>
+              </div>
+            </div>
+            <div className="w-16 h-16 bg-gray-100 dark:bg-gray-900 rounded-full flex items-center justify-center shadow-sm">
+              <span className="text-2xl font-black text-black dark:text-white">M</span>
             </div>
           </div>
-        )}
-      </main>
+          <div className="bg-gray-50 dark:bg-gray-900 rounded-3xl p-2 shadow-sm border border-gray-100 dark:border-gray-800 mb-6">
+            {['Help', 'Payment', 'Saved Places', 'Settings'].map((item, i) => (
+              <button key={i} className="w-full flex justify-between items-center p-4 hover:bg-gray-100 dark:hover:bg-gray-800 rounded-2xl transition-colors">
+                <span className="font-bold text-[15px] text-gray-900 dark:text-white">{item}</span>
+                <svg className="w-4 h-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 5l7 7-7 7" /></svg>
+              </button>
+            ))}
+          </div>
+              <p className="text-center text-[11px] text-gray-400 font-bold uppercase tracking-widest">Uninode v1.0.0 • uninode.in</p>
+        </div>
+      )}
+
+      {/* LAYER 3: BOTTOM NAVBAR */}
+      <nav className="absolute bottom-0 w-full h-20 bg-white/95 dark:bg-black/95 backdrop-blur-xl border-t border-gray-100 dark:border-white/5 z-50 flex justify-around items-center px-6 pb-safe">
+        <button onClick={() => setActiveTab('book')} className={`flex flex-col items-center gap-1 transition-colors ${activeTab === 'book' ? 'text-black dark:text-white' : 'text-gray-400 dark:text-gray-600'}`}>
+          {activeTab === 'book' ? (
+            <svg className="w-6 h-6" fill="currentColor" viewBox="0 0 20 20"><path d="M10.707 2.293a1 1 0 00-1.414 0l-7 7a1 1 0 001.414 1.414L4 10.414V17a1 1 0 001 1h2a1 1 0 001-1v-2a1 1 0 011-1h2a1 1 0 011 1v2a1 1 0 001 1h2a1 1 0 001-1v-6.586l.293.293a1 1 0 001.414-1.414l-7-7z" /></svg>
+          ) : (
+            <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth="2"><path strokeLinecap="round" strokeLinejoin="round" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6" /></svg>
+          )}
+          <span className="text-[10px] font-bold tracking-wide">Home</span>
+        </button>
+        <button onClick={() => setActiveTab('activity')} className={`flex flex-col items-center gap-1 transition-colors ${activeTab === 'activity' ? 'text-black dark:text-white' : 'text-gray-400 dark:text-gray-600'}`}>
+          {activeTab === 'activity' ? (
+            <svg className="w-6 h-6" fill="currentColor" viewBox="0 0 20 20"><path d="M9 2a1 1 0 000 2h2a1 1 0 100-2H9z" /><path fillRule="evenodd" d="M4 5a2 2 0 012-2 3 3 0 003 3h2a3 3 0 003-3 2 2 0 012 2v11a2 2 0 01-2 2H6a2 2 0 01-2-2V5zm3 4a1 1 0 000 2h.01a1 1 0 100-2H7zm3 0a1 1 0 000 2h3a1 1 0 100-2h-3zm-3 4a1 1 0 100 2h.01a1 1 0 100-2H7zm3 0a1 1 0 100 2h3a1 1 0 100-2h-3z" clipRule="evenodd" /></svg>
+          ) : (
+            <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth="2"><path strokeLinecap="round" strokeLinejoin="round" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" /></svg>
+          )}
+          <span className="text-[10px] font-bold tracking-wide">Activity</span>
+        </button>
+        <button onClick={() => setActiveTab('account')} className={`flex flex-col items-center gap-1 transition-colors ${activeTab === 'account' ? 'text-black dark:text-white' : 'text-gray-400 dark:text-gray-600'}`}>
+          {activeTab === 'account' ? (
+            <svg className="w-6 h-6" fill="currentColor" viewBox="0 0 20 20"><path fillRule="evenodd" d="M10 9a3 3 0 100-6 3 3 0 000 6zm-7 9a7 7 0 1114 0H3z" clipRule="evenodd" /></svg>
+          ) : (
+            <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth="2"><path strokeLinecap="round" strokeLinejoin="round" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" /></svg>
+          )}
+          <span className="text-[10px] font-bold tracking-wide">Account</span>
+        </button>
+      </nav>
     </div>
   );
 }

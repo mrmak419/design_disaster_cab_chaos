@@ -31,10 +31,10 @@ function RecenterControl({ map, isRouting, setIsDropoffReady }) {
   return (
     <button 
       onClick={handleRecenter}
-      className={`absolute right-4 z-[1000] bg-white p-3 rounded-full shadow-lg hover:bg-gray-50 transition-colors border border-gray-100 active:scale-95 ${isRouting ? 'bottom-4' : 'bottom-24'}`}
+      className={`absolute right-4 z-[1000] bg-white dark:bg-gray-800 p-3 rounded-full shadow-lg hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors border border-gray-100 dark:border-gray-700 active:scale-95 ${isRouting ? 'bottom-[350px]' : 'bottom-[350px]'}`}
       title="Recenter Map"
     >
-      <svg className="w-5 h-5 text-gray-700" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+      <svg className="w-5 h-5 text-gray-700 dark:text-gray-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
         <circle cx="12" cy="12" r="4" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
         <path d="M12 2v4m0 12v4M2 12h4m12 0h4" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
       </svg>
@@ -85,7 +85,6 @@ function ConfirmLocationControl({ map, activeField, isRouting, isDropoffReady })
       
       if (activeField === 'pickup') {
         setPickup(payload);
-        // NEW: Signal the dropdown to open the Dropoff input!
         setTimeout(() => {
           window.dispatchEvent(new Event('focus-dropoff'));
         }, 150);
@@ -108,15 +107,14 @@ function ConfirmLocationControl({ map, activeField, isRouting, isDropoffReady })
   };
 
   return (
-    <div className="absolute bottom-6 left-1/2 transform -translate-x-1/2 z-[1000] w-11/12 max-w-[300px]">
-      <button 
+<div className="absolute bottom-[320px] left-1/2 transform -translate-x-1/2 z-[1000] w-11/12 max-w-[300px]">      <button 
         onClick={handleConfirm}
         disabled={isConfirming || isDisabled}
-        className={`w-full font-bold py-3.5 rounded-xl shadow-xl active:scale-[0.98] transition-all flex justify-center items-center gap-2 ${isDisabled ? 'bg-gray-300 text-gray-500 cursor-not-allowed' : 'bg-black text-white disabled:opacity-70'}`}
+        className={`w-full font-bold py-4 rounded-2xl shadow-xl active:scale-[0.98] transition-all flex justify-center items-center gap-2 ${isDisabled ? 'bg-gray-200 dark:bg-gray-800 text-gray-400 cursor-not-allowed' : 'bg-black dark:bg-white text-white dark:text-black disabled:opacity-70'}`}
       >
         {isConfirming ? (
           <>
-            <svg className="w-5 h-5 animate-spin text-white" fill="none" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" className="opacity-25"></circle><path fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z" className="opacity-75"></path></svg>
+            <svg className="w-5 h-5 animate-spin" fill="none" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" className="opacity-25"></circle><path fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z" className="opacity-75"></path></svg>
             <span>Locking in...</span>
           </>
         ) : (
@@ -185,7 +183,8 @@ export default function AccurateMap() {
             setRoutePath(coords);
             setDistance(route.distance / 1000);
             
-            map.fitBounds(coords, { padding: [40, 40], animate: true, duration: 1 });
+            // Pad the bottom more so the route isn't hidden behind the pricing sheet
+            map.fitBounds(coords, { paddingBottomRight: [40, 300], paddingTopLeft: [40, 40], animate: true, duration: 1 });
           }
         } catch (error) {
           console.error("OSRM Routing failed:", error);
@@ -199,7 +198,8 @@ export default function AccurateMap() {
   }, [pickupLocation, dropoffLocation, setDistance, isRouting, map]);
 
   return (
-    <div className="relative w-full h-[45vh] md:h-[50vh] bg-gray-100 overflow-hidden">
+    // Changed to absolute full-screen
+    <div className="absolute inset-0 w-full h-full bg-gray-100 dark:bg-gray-900 overflow-hidden z-0 pointer-events-auto">
       
       <MapContainer 
         ref={setMap}
@@ -220,12 +220,13 @@ export default function AccurateMap() {
         {isRouting && pickupLocation && <Marker position={pickupLocation.coords} />}
         {isRouting && dropoffLocation && <Marker position={dropoffLocation.coords} />}
         {isRouting && routePath.length > 0 && (
-          <Polyline positions={routePath} pathOptions={{ color: '#3b82f6', weight: 5, lineCap: 'round', lineJoin: 'round' }} />
+          <Polyline positions={routePath} pathOptions={{ color: '#000000', weight: 4, lineCap: 'round', lineJoin: 'round' }} />
         )}
       </MapContainer>
 
+      {/* The Pin is adjusted slightly upwards to account for the bottom navbar */}
       {!isRouting && (
-        <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-full pointer-events-none z-[1000] drop-shadow-lg">
+        <div className="absolute top-[45%] left-1/2 transform -translate-x-1/2 -translate-y-full pointer-events-none z-[1000] drop-shadow-lg">
           <svg className="w-10 h-10 text-gray-900" viewBox="0 0 24 24" fill="currentColor">
             <path d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7zm0 9.5c-1.38 0-2.5-1.12-2.5-2.5s1.12-2.5 2.5-2.5 2.5 1.12 2.5 2.5-1.12 2.5-2.5 2.5z"/>
           </svg>
@@ -233,7 +234,7 @@ export default function AccurateMap() {
       )}
 
       {!isRouting && (
-        <div className="absolute top-4 left-1/2 -translate-x-1/2 z-[1000] bg-gray-900/90 backdrop-blur-sm px-4 py-2 rounded-full shadow-lg text-xs font-bold tracking-wide text-white border border-gray-700">
+        <div className="absolute top-28 left-1/2 -translate-x-1/2 z-[1000] bg-gray-900/90 backdrop-blur-sm px-4 py-2 rounded-full shadow-lg text-xs font-bold tracking-wide text-white border border-gray-700">
           Drag map to pin {activeField === 'pickup' ? 'Pickup' : 'Dropoff'}
         </div>
       )}
