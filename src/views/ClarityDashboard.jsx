@@ -27,17 +27,14 @@ export default function ClarityDashboard() {
   };
 
   return (
-    // MAIN WRAPPER: Full screen, no borders, no bezels.
     <div className="h-screen w-full relative overflow-hidden bg-black text-gray-900 dark:text-gray-100 font-sans">
       
       {/* LAYER 0: FULL BLEED MAP */}
-      {/* This fills 100% of whatever screen it is on */}
       <div className="absolute inset-0 z-0">
         <AccurateMap />
       </div>
 
       {/* --- SIDEBAR DRAWER (z-[100]) --- */}
-      {/* Backdrop covers full screen, menu slides in from the left edge of the center column */}
       <div className={`absolute inset-0 z-[100] pointer-events-none overflow-hidden ${isMenuOpen ? 'block' : 'hidden'}`}>
         <div 
           className="absolute inset-0 bg-black/40 backdrop-blur-sm transition-opacity duration-300 pointer-events-auto"
@@ -80,10 +77,9 @@ export default function ClarityDashboard() {
       </div>
 
       {/* --- MOCK ACTIVITY TAB --- */}
-      {/* Background covers whole screen, but content stays in the 420px center column */}
       {activeTab === 'activity' && (
         <div className="absolute inset-0 z-30 bg-white dark:bg-black overflow-y-auto animate-fade-in pointer-events-auto">
-          <div className="w-full max-w-[420px] mx-auto pb-24 px-5 pt-14 relative">
+          <div className="w-full max-w-[420px] mx-auto pb-24 md:pb-6 md:pt-24 px-5 pt-14 relative">
             <h2 className="text-3xl font-black text-gray-900 dark:text-white mb-6">Activity</h2>
             <h3 className="text-sm font-bold text-gray-500 uppercase tracking-wider mb-3">Past Rides</h3>
             <div className="bg-gray-50 dark:bg-gray-900 rounded-3xl p-4 shadow-sm border border-gray-100 dark:border-gray-800">
@@ -109,7 +105,7 @@ export default function ClarityDashboard() {
       {/* --- MOCK ACCOUNT TAB --- */}
       {activeTab === 'account' && (
         <div className="absolute inset-0 z-30 bg-white dark:bg-black overflow-y-auto animate-fade-in pointer-events-auto">
-          <div className="w-full max-w-[420px] mx-auto pb-24 px-5 pt-14 min-h-full flex flex-col justify-between relative">
+          <div className="w-full max-w-[420px] mx-auto pb-24 md:pb-6 md:pt-24 px-5 pt-14 min-h-full flex flex-col justify-between relative">
             <div>
               <div className="flex items-center justify-between mb-8">
                 <div>
@@ -138,13 +134,12 @@ export default function ClarityDashboard() {
       )}
 
       {/* LAYER 1 & 2: FLOATING UI OVER THE MAP */}
-      {/* Invisible wrapper that centers the interactive components */}
       {activeTab === 'book' && (
         <div className="absolute inset-0 z-10 pointer-events-none flex justify-center">
           <div className="w-full max-w-[420px] h-full relative pointer-events-none">
             
-            {/* Hamburger */}
-            <div className="absolute top-12 left-5 z-40 pointer-events-auto">
+            {/* Hamburger - Hidden on Desktop (replaced by Sidebar) */}
+            <div className="absolute top-12 left-5 z-40 pointer-events-auto md:hidden">
               <button 
                 onClick={() => setIsMenuOpen(true)} 
                 className="w-12 h-12 bg-white dark:bg-gray-900 rounded-full shadow-lg flex items-center justify-center active:scale-95 transition-transform border border-gray-100 dark:border-gray-800"
@@ -155,8 +150,8 @@ export default function ClarityDashboard() {
 
             {/* Bottom Sheet */}
             <div 
-              className={`absolute bottom-20 left-0 w-full z-40 bg-white dark:bg-gray-900 rounded-t-3xl shadow-[0_-15px_40px_rgba(0,0,0,0.15)] pt-3 transition-all duration-300 ease-out flex flex-col pointer-events-auto ${
-                isSheetExpanded ? 'h-[75vh]' : 'h-auto max-h-[35vh]'
+              className={`absolute bottom-20 md:bottom-6 left-0 md:left-4 w-full md:w-[calc(100%-32px)] z-40 bg-white dark:bg-gray-900 rounded-t-3xl md:rounded-3xl shadow-[0_-15px_40px_rgba(0,0,0,0.15)] md:shadow-2xl pt-3 transition-all duration-300 ease-out flex flex-col pointer-events-auto ${
+                isSheetExpanded ? 'h-[75vh] md:h-[70vh]' : 'h-auto max-h-[35vh]'
               }`}
             >
               <div 
@@ -168,9 +163,9 @@ export default function ClarityDashboard() {
                 <div className="w-12 h-1.5 bg-gray-300 dark:bg-gray-700 rounded-full mx-auto"></div>
               </div>
               
-              <div className={`w-full max-w-lg mx-auto relative px-5 pb-6 overscroll-contain pb-safe no-scrollbar ${
-                isSheetExpanded ? 'overflow-y-auto' : 'overflow-hidden'
-              }`}>
+              <div className={`w-full max-w-lg mx-auto relative px-5 pb-10 overscroll-contain pb-safe no-scrollbar ${
+  isSheetExpanded ? 'overflow-y-auto flex-1' : 'overflow-hidden'
+}`}>
                 <style>{`.no-scrollbar::-webkit-scrollbar { display: none; } .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }`}</style>
                 
                 <ClarityLocation />
@@ -187,36 +182,43 @@ export default function ClarityDashboard() {
         </div>
       )}
 
-      {/* LAYER 3: BOTTOM NAVBAR */}
-      {/* Background spans 100%, but icons stay within the 420px column */}
-      <div className="absolute bottom-0 w-full z-50 pointer-events-none flex justify-center border-t border-gray-100 dark:border-white/5 bg-white/95 dark:bg-black/95 backdrop-blur-xl">
-        <nav className="w-full max-w-[420px] h-20 flex justify-around items-center px-6 pb-safe pointer-events-auto">
-          <button onClick={() => setActiveTab('book')} className={`flex flex-col items-center gap-1 transition-colors ${activeTab === 'book' ? 'text-black dark:text-white' : 'text-gray-400 dark:text-gray-600'}`}>
+      {/* LAYER 3: RESPONSIVE NAV (Bottom Nav on Mobile, Sidebar on Desktop) */}
+      <nav className="absolute bottom-0 md:bottom-auto md:top-0 md:left-0 w-full md:w-24 h-20 md:h-full z-50 pointer-events-auto flex md:flex-col justify-around md:justify-center md:gap-12 items-center px-6 md:px-0 pb-safe md:pb-0 bg-white/95 dark:bg-black/95 backdrop-blur-xl border-t md:border-t-0 md:border-r border-gray-100 dark:border-white/5 shadow-[0_-10px_40px_rgba(0,0,0,0.05)] md:shadow-[10px_0_40px_rgba(0,0,0,0.05)]">
+        
+        {/* Replaced 'Home' with a Map Pin icon indicating 'Ride' */}
+        <button onClick={() => setActiveTab('book')} className={`flex flex-col items-center gap-1.5 transition-colors group ${activeTab === 'book' ? 'text-black dark:text-white' : 'text-gray-400 dark:text-gray-600 hover:text-gray-600 dark:hover:text-gray-300'}`}>
+          <div className={`p-2 rounded-xl transition-colors ${activeTab === 'book' ? 'bg-gray-100 dark:bg-gray-800' : 'group-hover:bg-gray-50 dark:group-hover:bg-gray-800/50'}`}>
             {activeTab === 'book' ? (
-              <svg className="w-6 h-6" fill="currentColor" viewBox="0 0 20 20"><path d="M10.707 2.293a1 1 0 00-1.414 0l-7 7a1 1 0 001.414 1.414L4 10.414V17a1 1 0 001 1h2a1 1 0 001-1v-2a1 1 0 011-1h2a1 1 0 011 1v2a1 1 0 001 1h2a1 1 0 001-1v-6.586l.293.293a1 1 0 001.414-1.414l-7-7z" /></svg>
+              <svg className="w-6 h-6 md:w-7 md:h-7" fill="currentColor" viewBox="0 0 24 24"><path d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7zm0 9.5c-1.38 0-2.5-1.12-2.5-2.5s1.12-2.5 2.5-2.5 2.5 1.12 2.5 2.5-1.12 2.5-2.5 2.5z"/></svg>
             ) : (
-              <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth="2"><path strokeLinecap="round" strokeLinejoin="round" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6" /></svg>
+              <svg className="w-6 h-6 md:w-7 md:h-7" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth="2"><path strokeLinecap="round" strokeLinejoin="round" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.243-4.243a8 8 0 1111.314 0z" /><path strokeLinecap="round" strokeLinejoin="round" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" /></svg>
             )}
-            <span className="text-[10px] font-bold tracking-wide">Home</span>
-          </button>
-          <button onClick={() => setActiveTab('activity')} className={`flex flex-col items-center gap-1 transition-colors ${activeTab === 'activity' ? 'text-black dark:text-white' : 'text-gray-400 dark:text-gray-600'}`}>
+          </div>
+          <span className="text-[10px] font-bold tracking-wide">Ride</span>
+        </button>
+
+        <button onClick={() => setActiveTab('activity')} className={`flex flex-col items-center gap-1.5 transition-colors group ${activeTab === 'activity' ? 'text-black dark:text-white' : 'text-gray-400 dark:text-gray-600 hover:text-gray-600 dark:hover:text-gray-300'}`}>
+          <div className={`p-2 rounded-xl transition-colors ${activeTab === 'activity' ? 'bg-gray-100 dark:bg-gray-800' : 'group-hover:bg-gray-50 dark:group-hover:bg-gray-800/50'}`}>
             {activeTab === 'activity' ? (
-              <svg className="w-6 h-6" fill="currentColor" viewBox="0 0 20 20"><path d="M9 2a1 1 0 000 2h2a1 1 0 100-2H9z" /><path fillRule="evenodd" d="M4 5a2 2 0 012-2 3 3 0 003 3h2a3 3 0 003-3 2 2 0 012 2v11a2 2 0 01-2 2H6a2 2 0 01-2-2V5zm3 4a1 1 0 000 2h.01a1 1 0 100-2H7zm3 0a1 1 0 000 2h3a1 1 0 100-2h-3zm-3 4a1 1 0 100 2h.01a1 1 0 100-2H7zm3 0a1 1 0 100 2h3a1 1 0 100-2h-3z" clipRule="evenodd" /></svg>
+              <svg className="w-6 h-6 md:w-7 md:h-7" fill="currentColor" viewBox="0 0 20 20"><path d="M9 2a1 1 0 000 2h2a1 1 0 100-2H9z" /><path fillRule="evenodd" d="M4 5a2 2 0 012-2 3 3 0 003 3h2a3 3 0 003-3 2 2 0 012 2v11a2 2 0 01-2 2H6a2 2 0 01-2-2V5zm3 4a1 1 0 000 2h.01a1 1 0 100-2H7zm3 0a1 1 0 000 2h3a1 1 0 100-2h-3zm-3 4a1 1 0 100 2h.01a1 1 0 100-2H7zm3 0a1 1 0 100 2h3a1 1 0 100-2h-3z" clipRule="evenodd" /></svg>
             ) : (
-              <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth="2"><path strokeLinecap="round" strokeLinejoin="round" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" /></svg>
+              <svg className="w-6 h-6 md:w-7 md:h-7" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth="2"><path strokeLinecap="round" strokeLinejoin="round" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" /></svg>
             )}
-            <span className="text-[10px] font-bold tracking-wide">Activity</span>
-          </button>
-          <button onClick={() => setActiveTab('account')} className={`flex flex-col items-center gap-1 transition-colors ${activeTab === 'account' ? 'text-black dark:text-white' : 'text-gray-400 dark:text-gray-600'}`}>
+          </div>
+          <span className="text-[10px] font-bold tracking-wide">Activity</span>
+        </button>
+
+        <button onClick={() => setActiveTab('account')} className={`flex flex-col items-center gap-1.5 transition-colors group ${activeTab === 'account' ? 'text-black dark:text-white' : 'text-gray-400 dark:text-gray-600 hover:text-gray-600 dark:hover:text-gray-300'}`}>
+          <div className={`p-2 rounded-xl transition-colors ${activeTab === 'account' ? 'bg-gray-100 dark:bg-gray-800' : 'group-hover:bg-gray-50 dark:group-hover:bg-gray-800/50'}`}>
             {activeTab === 'account' ? (
-              <svg className="w-6 h-6" fill="currentColor" viewBox="0 0 20 20"><path fillRule="evenodd" d="M10 9a3 3 0 100-6 3 3 0 000 6zm-7 9a7 7 0 1114 0H3z" clipRule="evenodd" /></svg>
+              <svg className="w-6 h-6 md:w-7 md:h-7" fill="currentColor" viewBox="0 0 20 20"><path fillRule="evenodd" d="M10 9a3 3 0 100-6 3 3 0 000 6zm-7 9a7 7 0 1114 0H3z" clipRule="evenodd" /></svg>
             ) : (
-              <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth="2"><path strokeLinecap="round" strokeLinejoin="round" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" /></svg>
+              <svg className="w-6 h-6 md:w-7 md:h-7" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth="2"><path strokeLinecap="round" strokeLinejoin="round" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" /></svg>
             )}
-            <span className="text-[10px] font-bold tracking-wide">Account</span>
-          </button>
-        </nav>
-      </div>
+          </div>
+          <span className="text-[10px] font-bold tracking-wide">Account</span>
+        </button>
+      </nav>
 
     </div>
   );

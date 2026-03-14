@@ -21,6 +21,7 @@ export default function TransparentPricing() {
   const [isProcessingBooking, setIsProcessingBooking] = useState(false);
   const [isBooked, setIsBooked] = useState(false);
 
+  // STRICT REQUIREMENT: Both global states must have coordinates
   const hasBothLocations = pickupLocation?.coords && dropoffLocation?.coords;
 
   useEffect(() => {
@@ -33,6 +34,7 @@ export default function TransparentPricing() {
     }
   }, [pickupLocation, dropoffLocation, hasBothLocations]);
 
+  // If either field is empty, return null entirely (hides the whole component)
   if (!hasBothLocations) return null;
 
   const estimatedDistance = calculateEstimatedDistance(pickupLocation.coords, dropoffLocation.coords);
@@ -53,7 +55,6 @@ export default function TransparentPricing() {
   const formatINR = (amount) => amount.toLocaleString('en-IN', { style: 'currency', currency: 'INR', maximumFractionDigits: 0 });
 
   const activeRide = rides.find(r => r.id === selectedRideType) || rides[0];
-  const finalPrice = formatINR(calculateFare(activeRide));
 
   const handleBooking = () => {
     setIsProcessingBooking(true);
@@ -82,7 +83,6 @@ export default function TransparentPricing() {
   }
 
   return (
-    // Notice how all the bg-white, padding, and rounded-t-3xl classes are GONE.
     <div className="w-full mt-5 animate-slide-up pb-2">
       
       <h3 className="text-[17px] font-black text-gray-900 dark:text-white mb-3 px-1">Choose a ride</h3>
@@ -109,7 +109,6 @@ export default function TransparentPricing() {
               >
                 <div className="flex items-center gap-4">
                   <div className="w-12 h-12 flex items-center justify-center shrink-0">
-                    {/* Cleaned up SVGs without the bulky circular background */}
                     {ride.id === 'mini' && <svg className="w-8 h-8 text-gray-800 dark:text-gray-200" fill="currentColor" viewBox="0 0 24 24"><path d="M18.92 6.01C18.72 5.42 18.16 5 17.5 5h-11c-.66 0-1.21.42-1.42 1.01L3 12v8c0 .55.45 1 1 1h1c.55 0 1-.45 1-1v-1h12v1c0 .55.45 1 1 1h1c.55 0 1-.45 1-1v-8l-2.08-5.99zM6.5 16c-.83 0-1.5-.67-1.5-1.5S5.67 13 6.5 13s1.5.67 1.5 1.5S7.33 16 6.5 16zm11 0c-.83 0-1.5-.67-1.5-1.5s.67-1.5 1.5-1.5 1.5.67 1.5 1.5-.67 1.5-1.5 1.5zM5 11l1.5-4.5h11L19 11H5z"/></svg>}
                     {ride.id === 'sedan' && <svg className="w-9 h-9 text-gray-800 dark:text-gray-200" fill="currentColor" viewBox="0 0 24 24"><path d="M18.92 6.01C18.72 5.42 18.16 5 17.5 5H15V3H9v2H6.5c-.66 0-1.21.42-1.42 1.01L3 12v8c0 .55.45 1 1 1h1c.55 0 1-.45 1-1v-1h12v1c0 .55.45 1 1 1h1c.55 0 1-.45 1-1v-8l-2.08-5.99zM6.5 16c-.83 0-1.5-.67-1.5-1.5S5.67 13 6.5 13s1.5.67 1.5 1.5S7.33 16 6.5 16zm11 0c-.83 0-1.5-.67-1.5-1.5s.67-1.5 1.5-1.5 1.5.67 1.5 1.5-.67 1.5-1.5 1.5zM5 11l1.5-4.5h11L19 11H5z"/></svg>}
                     {ride.id === 'suv' && <svg className="w-10 h-10 text-gray-800 dark:text-gray-200" fill="currentColor" viewBox="0 0 24 24"><path d="M18.92 6.01C18.72 5.42 18.16 5 17.5 5h-11c-.66 0-1.21.42-1.42 1.01L3 12v8c0 .55.45 1 1 1h1c.55 0 1-.45 1-1v-1h12v1c0 .55.45 1 1 1h1c.55 0 1-.45 1-1v-8l-2.08-5.99zM6.5 16c-.83 0-1.5-.67-1.5-1.5S5.67 13 6.5 13s1.5.67 1.5 1.5S7.33 16 6.5 16zm11 0c-.83 0-1.5-.67-1.5-1.5s.67-1.5 1.5-1.5 1.5.67 1.5 1.5-.67 1.5-1.5 1.5zM5 11l1.5-4.5h11L19 11H5z"/></svg>}
@@ -134,11 +133,10 @@ export default function TransparentPricing() {
         </div>
       )}
 
-      {/* SOLID BLACK CTA BUTTON */}
       <button 
         disabled={isCalculating || isProcessingBooking}
         onClick={handleBooking}
-        className="w-full bg-black dark:bg-white text-white dark:text-black font-bold text-[17px] py-4 rounded-xl transition-transform active:scale-[0.98] flex items-center justify-center gap-2 disabled:opacity-50 disabled:active:scale-100"
+        className="w-full bg-black dark:bg-white text-white dark:text-black font-bold text-[17px] py-4 rounded-xl transition-transform active:scale-[0.98] flex items-center justify-center gap-2 disabled:opacity-50 disabled:active:scale-100 shadow-lg"
       >
         {isProcessingBooking ? (
           <svg className="w-5 h-5 animate-spin text-white dark:text-black" fill="none" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" className="opacity-25"></circle><path fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z" className="opacity-75"></path></svg>

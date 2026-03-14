@@ -1,9 +1,10 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useAppStore } from '../../store/appStore';
 import { useFakeLag } from '../../hooks/useFakeLag';
 
 export default function ChaosLocationInput() {
-  const { setPickup, setDropoff } = useAppStore(); // Removed setBaseFare from here
+  // 1. ADDED: pickupLocation and dropoffLocation to the destructuring
+  const { setPickup, setDropoff, pickupLocation, dropoffLocation } = useAppStore(); 
   const applyLag = useFakeLag();
   
   const [pickupText, setPickupText] = useState('');
@@ -26,6 +27,20 @@ export default function ChaosLocationInput() {
   ];
 
   const baseSuccessCoords = [12.9716, 77.5946]; 
+
+  // 2. ADDED: Sync global Pickup to local Chaos text
+  useEffect(() => {
+    if (pickupLocation?.address && pickupLocation.address !== pickupText) {
+      setPickupText(pickupLocation.address);
+    }
+  }, [pickupLocation]);
+
+  // 3. ADDED: Sync global Dropoff to local Chaos text
+  useEffect(() => {
+    if (dropoffLocation?.address && dropoffLocation.address !== dropoffText) {
+      setDropoffText(dropoffLocation.address);
+    }
+  }, [dropoffLocation]);
 
   const handleSearch = (field, text) => {
     if (field === 'pickup') setPickupText(text);
